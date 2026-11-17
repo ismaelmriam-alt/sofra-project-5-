@@ -1,0 +1,26 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Sofra frontend",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "client"],
+            "options": {
+                "cwd": "${workspaceFolder}\\sofra"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "custom",
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": "Local:\\s+http://localhost:5173/"
+                }
+            }
+        }
+    ]
+}
