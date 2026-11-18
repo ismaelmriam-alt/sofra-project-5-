@@ -11,7 +11,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export function createApp() {
   const app = express();
-  app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173', allowedHeaders: ['Content-Type', 'x-admin-key'] }));
+  const allowedOrigins = [
+    process.env.CLIENT_ORIGIN,
+    'http://localhost:5173',
+    'https://sofra-project-5.vercel.app',
+  ].filter(Boolean);
+  app.use(cors({ origin: allowedOrigins, allowedHeaders: ['Content-Type', 'x-admin-key'] }));
   app.use(express.json({ limit: '200kb' }));
 
   // Photos (including admin uploads) are served from public/assets/images in production too
