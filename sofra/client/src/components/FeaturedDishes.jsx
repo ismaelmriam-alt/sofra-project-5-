@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Reveal, MaskReveal, WordReveal } from './Reveal.jsx';
+import { Reveal, WordReveal } from './Reveal.jsx';
 import SmoothImage from './SmoothImage.jsx';
 import { HeadingOrnament } from './Ornaments.jsx';
 import Decor from './Decor.jsx';
@@ -34,11 +34,11 @@ export default function FeaturedDishes({ dishes, loading, error }) {
         <div className="featured-grid">
           {list.map((d, i) => (
             <Reveal key={d._id} direction={i % 2 ? 'right' : 'left'} delay={(i % 3) * 0.08} className={`feature ${SLOTS[i]}`}>
-              <MaskReveal className="feature-media" direction={i % 2 ? 'left' : 'right'}>
+              <div className="feature-media">
                 <button onClick={() => setOpen(d)} aria-label={`View ${d.name}`}>
                   <SmoothImage src={d.image} alt={`${d.name}, a Lebanese dish`} name={d.name} />
                 </button>
-              </MaskReveal>
+              </div>
               <div className="feature-info">
                 <span className="feature-num">0{i + 1}</span>
                 <h3>{d.name}</h3>
