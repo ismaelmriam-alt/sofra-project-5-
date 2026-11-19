@@ -38,9 +38,13 @@ console.log('Admin login');
 const bad = await j('POST', '/api/admin/login', { password: 'wrong' });
 check('wrong password → 401', bad.status === 401);
 const badBody = await bad.json();
-check('401 diagnostic reports configured flag and submitted length only',
+check('401 diagnostics expose no password value and include safe mismatch flags',
   badBody.details?.diagnostic?.adminPasswordConfigured === true
   && badBody.details?.diagnostic?.submittedPasswordLength === 5
+  && typeof badBody.details?.diagnostic?.configuredPasswordHasOuterWhitespace === 'boolean'
+  && typeof badBody.details?.diagnostic?.submittedPasswordHasOuterWhitespace === 'boolean'
+  && typeof badBody.details?.diagnostic?.characterLengthsMatch === 'boolean'
+  && typeof badBody.details?.diagnostic?.utf8ByteLengthsMatch === 'boolean'
   && !JSON.stringify(badBody).includes('wrong'));
 const good = await j('POST', '/api/admin/login', { password: process.env.ADMIN_PASSWORD });
 check('correct password → 200', good.status === 200);
@@ -50,7 +54,23 @@ const health = await (await j('GET', '/api/health')).json();
 check('health exposes safe deployment fingerprint and configured flag',
   Object.hasOwn(health, 'adminPasswordConfigured')
   && Object.hasOwn(health.deployment || {}, 'commit')
-  && Object.hasOwn(health.deployment || {}, 'service'));
+  && Object.hasOwn(health.deployment || {}, 'service')
+  && typeof health.adminPasswordHasOuterWhitespace === 'boolean');
+
+const originalAdminPassword = process.env.ADMIN_PASSWORD;
+process.env.ADMIN_PASSWORD = '  Söffra🔐  ';
+const exactUnicodeLogin = await j('POST', '/api/admin/login', { password: '  Söffra🔐  ' });
+const trimmedUnicodeLogin = await j('POST', '/api/admin/login', { password: 'Söffra🔐' });
+const trimmedUnicodeDiagnostics = (await trimmedUnicodeLogin.json()).details?.diagnostic;
+check('admin password comparison preserves whitespace and Unicode exactly',
+  exactUnicodeLogin.status === 200 && trimmedUnicodeLogin.status === 401);
+check('diagnostics identify outer whitespace and length mismatch without values',
+  trimmedUnicodeDiagnostics?.configuredPasswordHasOuterWhitespace === true
+  && trimmedUnicodeDiagnostics?.submittedPasswordHasOuterWhitespace === false
+  && trimmedUnicodeDiagnostics?.characterLengthsMatch === false
+  && trimmedUnicodeDiagnostics?.utf8ByteLengthsMatch === false
+  && !JSON.stringify(trimmedUnicodeDiagnostics).includes('Söffra'));
+process.env.ADMIN_PASSWORD = originalAdminPassword;
 
 console.log('User authentication');
 const user = new User({ name: ' Test User ', email: ' TEST@EXAMPLE.COM ', passwordHash: 'test-hash' });

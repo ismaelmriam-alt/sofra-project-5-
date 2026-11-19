@@ -23,6 +23,8 @@ router.get('/health', (req, res) => {
       service: process.env.RENDER_SERVICE_NAME || null,
     },
     adminPasswordConfigured: isAdminPasswordConfigured(),
+    adminPasswordHasOuterWhitespace: typeof process.env.ADMIN_PASSWORD === 'string'
+      && process.env.ADMIN_PASSWORD !== process.env.ADMIN_PASSWORD.trim(),
   });
 });
 
