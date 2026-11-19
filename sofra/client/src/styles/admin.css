@@ -61,3 +61,35 @@ button.pill { cursor: pointer; }
 
 .a-ph { display: inline-block; margin-left: .4rem; padding: .1rem .45rem; border-radius: 999px; background: #f3e6c8; color: #8a5a00; font-size: .68rem; letter-spacing: .04em; text-transform: uppercase; vertical-align: middle; }
 .a-note { padding: .8rem 1rem; background: rgba(168, 139, 106, .12); border-radius: 8px; }
+.pill.confirmed { background: #d9eadf; color: var(--cedar-dark); }
+.pill.rejected, .pill.cancelled { background: #eee; color: #777; }
+.status-select.confirmed { background: #d9eadf; }
+.status-select.rejected, .status-select.cancelled { background: #eee; }
+.reservation-settings-form { display: grid; gap: 1rem; }
+.reservation-settings-form .a-card > p { max-width: 70ch; }
+.reservation-settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.2rem; }
+.reservation-settings-grid .a-field, .reservation-day-row .a-field, .reservation-table-fields .a-field { display: grid; gap: .35rem; color: var(--wood); font-size: .88rem; font-weight: 500; }
+.reservation-settings-grid input, .reservation-day-row input, .reservation-day-row select, .reservation-table-fields input { min-width: 0; width: 100%; min-height: 42px; border: 1px solid rgba(101, 72, 50, .3); border-radius: 6px; background: #fff; padding: .55rem .7rem; font: inherit; color: var(--ink); }
+.reservation-day-list { display: grid; gap: .7rem; margin-top: 1.2rem; }
+.reservation-day-row { display: grid; grid-template-columns: 105px 140px 110px 110px minmax(170px, 1fr); gap: .7rem; align-items: end; padding: .8rem; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.reservation-day-name { align-self: center; font-weight: 600; color: var(--wood); }
+.reservation-day-row .a-field > span, .reservation-table-fields .a-field > span { font-size: .78rem; }
+.reservation-day-note { grid-column: 3 / -1; margin: 0; align-self: center; color: var(--stone); font-size: .9rem; }
+.reservation-tables-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .8rem; margin-top: 1rem; }
+.reservation-table-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; padding: .8rem; border: 1px solid var(--line); border-radius: 8px; }
+.reservation-settings-message { position: static; max-width: none; margin: 0; }
+.reservation-filters label { display: grid; align-items: center; }
+.reservation-filters input, .reservation-filters select { min-height: 40px; padding: .45rem .7rem; border: 1px solid var(--line); border-radius: 6px; background: #fff; font: inherit; }
+.reservation-admin-request { margin: .4rem 0 0; max-width: 260px; white-space: normal; font-size: .8rem; color: var(--wood); }
+
+@media (max-width: 1100px) {
+  .reservation-day-row { grid-template-columns: 1fr 1fr; align-items: end; }
+  .reservation-day-name { grid-column: 1 / -1; }
+  .reservation-day-note { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+  .reservation-settings-grid, .reservation-table-fields { grid-template-columns: 1fr; }
+  .reservation-day-row { grid-template-columns: 1fr; }
+  .reservation-day-name { grid-column: auto; }
+  .reservation-day-note { grid-column: auto; }
+}

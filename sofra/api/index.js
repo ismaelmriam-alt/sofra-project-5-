@@ -1,5 +1,5 @@
 // Vercel serverless entry: runs the SAME Express API (server/src) on Vercel, so the whole site
-// (website + API) is one Vercel project. Needs MONGODB_URI and ADMIN_PASSWORD in Vercel → Settings → Environment Variables.
+// (website + API) is one Vercel project. Needs MONGODB_URI, ADMIN_PASSWORD, and JWT_SECRET in Vercel → Settings → Environment Variables.
 import { connectDB } from '../server/src/config/db.js';
 import { createApp } from '../server/src/app.js';
 

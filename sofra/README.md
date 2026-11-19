@@ -12,7 +12,7 @@ Requirements: Node 18+ and MongoDB (local install, or a free MongoDB Atlas clust
 npm run install:all
 
 # 2. configure the backend
-cp server/.env.example server/.env      # then edit MONGODB_URI if needed
+cp server/.env.example server/.env      # set MONGODB_URI, ADMIN_PASSWORD, and JWT_SECRET
 
 # 3. load the starting menu (9 categories, 50 items) into MongoDB
 npm run seed
@@ -44,18 +44,25 @@ Atlas: paste your `mongodb+srv://…` string into `server/.env`. Credentials onl
 ## REST API
 | Resource | Endpoints |
 |---|---|
+| User auth | `POST /api/auth/register`, `POST /api/auth/login` (returns a one-hour JWT), `GET /api/auth/me` (Bearer token required) |
 | Admin | `POST /api/admin/login`, `GET /api/admin/verify`, `POST /api/uploads/dish-image` (multipart field `image`, JPG/PNG/WebP/AVIF ≤ 5 MB) |
 | Categories | `GET/POST /api/categories`, `GET/PUT/DELETE /api/categories/:id` (delete refused with 409 while it still has dishes) |
 | Dishes | `GET/POST /api/dishes` (`?category=slug&search=&featured=true`), `GET/PUT/DELETE /api/dishes/:id` |
 | Orders | `POST /api/orders`, `GET /api/orders`, `PATCH /api/orders/:id/status`, `GET /api/orders/stats`, `GET /api/orders/lookup/:orderId` |
+| Reservations | `GET /api/reservations/availability` and `POST /api/reservations` are public; `GET/PUT /api/reservation-settings`, `GET /api/reservations`, and `PATCH /api/reservations/:id/status` require the admin key |
 
-**Who can do what:** everyone can `GET` the menu, categories and place/look up an order. Every other write (dish/category create-update-delete, uploads, listing/updating/deleting orders) needs the admin password and returns **401** otherwise.
+**Who can do what:** everyone can register, log in, `GET` the menu and categories, place/look up an order, and request a table without creating an account. `GET /api/auth/me` requires a valid user JWT. Dish/category edits, uploads, order administration, reservation settings, reservation listing, and reservation status changes require the separate admin password and return **401** otherwise.
+
+## Table reservations
+Bookings remain unavailable until an administrator completes **/admin → Reservation Settings** with the real timezone, weekly opening hours, reservation duration, table count and capacities, and maximum party size. No manual booking times, fictional footer hours, or sample seating values are used: the API generates slots every 30 minutes from the saved opening time, and only returns times where the complete configured duration fits and a suitable table is available. Closing earlier than opening represents an overnight schedule; after-midnight times are listed on their local calendar date. Availability uses the saved restaurant timezone. Each booking is assigned one suitable table, and pending reservations hold that table until confirmed, rejected, or cancelled. Public booking is at `/reservations`; the admin queue and settings are under `/admin`.
+
+User registration/login require `JWT_SECRET` in `server/.env` (and in Vercel project environment variables when deployed). Set a randomly generated value of at least 32 bytes; there is no built-in fallback. User passwords are stored as bcrypt hashes.
 
 Order totals are computed on the server from database prices; unavailable dishes are rejected.
 
 ## Features
-* Customer: animated hero, featured dishes, category showcase, story, searchable/filterable menu, dish details with ingredients and optional add-ons, cart drawer (persisted in localStorage, re-synced with live prices/availability), checkout with validation, order confirmation, mascot with the three required Arabic messages, mobile menu, reduced-motion support.
-* Admin: overview with live DB stats, dishes CRUD (price, category, description, ingredients, image, availability, featured, add-ons), categories CRUD, orders list with status updates (Pending / Preparing / Delivered).
+* Customer: animated hero, featured dishes, category showcase, story, searchable/filterable menu, dish details with ingredients and optional add-ons, cart drawer (persisted in localStorage, re-synced with live prices/availability), checkout with validation, order confirmation, optional account authentication, public table reservation requests, mascot with the three required Arabic messages, mobile menu, reduced-motion support.
+* Admin: overview with live DB stats, dishes CRUD (price, category, description, ingredients, image, availability, featured, add-ons), categories CRUD, orders list with status updates (Pending / Preparing / Delivered), reservation schedule/table settings, and reservation queue with date/status filters and status updates.
 * Limestone background is generated in CSS/SVG (procedural noise lighting), not a photo.
 
 ## Real food photography — how to add it
@@ -99,7 +106,7 @@ Photos live in `client/public/assets/images/dishes/<dish-slug>.jpg` and `categor
 Admin → Categories: add/rename/delete categories, Arabic name, upload/replace/remove the category photo, and choose *Photo per dish* or *Shared photo*.
 
 ## Extra tests
-`npm run test:offline --prefix server` (no database needed) checks the admin guard, upload rules and model validation (33 checks; run before the DB tests).
+`npm run test:offline --prefix server` (no database needed) checks the admin guard, upload rules and model validation. `npm run test:reservations --prefix server` runs reservation settings, availability, conflict, guest-booking, and admin-protection tests against an isolated in-memory database.
 
 ## Mascot (waiter)
 Exactly five approved Arabic messages, defined in `client/src/context/MascotContext.jsx`: opening the website (once per browser tab session), selecting a dish (opening its details), adding to cart, opening the cart, and a successful checkout (only after the server accepts the order). No other actions trigger the mascot.

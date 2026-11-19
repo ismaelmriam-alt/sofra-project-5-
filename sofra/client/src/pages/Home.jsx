@@ -6,6 +6,7 @@ import CategoryShowcase from '../components/CategoryShowcase.jsx';
 import TasteOfLebanon from '../components/TasteOfLebanon.jsx';
 import Story from '../components/Story.jsx';
 import FinalCTA from '../components/FinalCTA.jsx';
+import ReservationCTA from '../components/ReservationCTA.jsx';
 import { GeometricDivider } from '../components/Ornaments.jsx';
 import useFetch from '../hooks/useFetch.js';
 import { api } from '../api/client.js';
@@ -29,6 +30,7 @@ export default function Home() {
       <CategoryShowcase categories={cats.data} loading={cats.loading} error={cats.error} />
       <GeometricDivider />
       <Story />
+      <ReservationCTA />
       <FinalCTA />
     </>
   );

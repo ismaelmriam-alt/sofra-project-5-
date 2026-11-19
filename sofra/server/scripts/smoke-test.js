@@ -1,6 +1,8 @@
 // End-to-end API check against a RUNNING server with a real MongoDB.
 //   1) npm run seed    2) npm start    3) npm run test:api
 // Creates temporary records and cleans them up afterwards.
+import 'dotenv/config';
+
 const BASE = process.env.API_URL || 'http://localhost:5000/api';
 const ADMIN = process.env.ADMIN_PASSWORD || 'sofra2026';
 let passed = 0;

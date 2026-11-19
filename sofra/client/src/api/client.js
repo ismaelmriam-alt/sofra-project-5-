@@ -15,13 +15,14 @@ export const getAdminKey = () => { try { return sessionStorage.getItem(KEY_STORA
 export const setAdminKey = (k) => { try { sessionStorage.setItem(KEY_STORAGE, k); } catch { /* ignore */ } };
 export const clearAdminKey = () => { try { sessionStorage.removeItem(KEY_STORAGE); } catch { /* ignore */ } };
 
-async function request(method, path, body, { formData } = {}) {
+async function request(method, path, body, { formData, userToken, includeAdmin = true } = {}) {
   let res;
-  const key = getAdminKey();
+  const key = includeAdmin ? getAdminKey() : '';
   try {
     const headers = {};
     if (body && !formData) headers['Content-Type'] = 'application/json';
     if (key) headers['x-admin-key'] = key;
+    if (userToken) headers.Authorization = `Bearer ${userToken}`;
     res = await fetch(BASE + path, { method, headers, body: formData || (body ? JSON.stringify(body) : undefined) });
   } catch {
     throw new ApiError('Cannot reach the server. Please check that the backend is running.', 0);
@@ -29,11 +30,16 @@ async function request(method, path, body, { formData } = {}) {
   let data = null;
   try { data = await res.json(); } catch { /* no body */ }
   if (res.status === 401 && key && !path.startsWith('/admin/login')) window.dispatchEvent(new Event('sofra-admin-unauthorized'));
+  if (res.status === 401 && userToken) window.dispatchEvent(new Event('sofra-user-unauthorized'));
   if (!res.ok) throw new ApiError(data?.message || `Request failed (${res.status})`, res.status, data?.details);
   return data;
 }
 
 export const api = {
+  // User authentication is kept separate from the shared admin key.
+  registerUser: (credentials) => request('POST', '/auth/register', credentials, { includeAdmin: false }),
+  loginUser: (credentials) => request('POST', '/auth/login', credentials, { includeAdmin: false }),
+  getCurrentUser: (token) => request('GET', '/auth/me', null, { userToken: token, includeAdmin: false }),
   // admin session + uploads
   adminLogin: (password) => request('POST', '/admin/login', { password }),
   adminVerify: () => request('GET', '/admin/verify'),
@@ -59,4 +65,20 @@ export const api = {
   updateOrderStatus: (id, status) => request('PATCH', `/orders/${id}/status`, { status }),
   deleteOrder: (id) => request('DELETE', `/orders/${id}`),
   getStats: () => request('GET', '/orders/stats'),
+  getReservationAvailability: (date, guests) => {
+    const params = new URLSearchParams();
+    if (date) params.set('date', date);
+    if (guests !== undefined && guests !== null) params.set('guests', String(guests));
+    const query = params.toString();
+    return request('GET', `/reservations/availability${query ? `?${query}` : ''}`, null, { includeAdmin: false });
+  },
+  createReservation: (details) => request('POST', '/reservations', details, { includeAdmin: false }),
+  getReservationSettings: () => request('GET', '/reservation-settings'),
+  saveReservationSettings: (settings) => request('PUT', '/reservation-settings', settings),
+  getReservations: (filters = {}) => {
+    const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value !== undefined && value !== ''));
+    const query = params.toString();
+    return request('GET', `/reservations${query ? `?${query}` : ''}`);
+  },
+  updateReservationStatus: (id, status) => request('PATCH', `/reservations/${id}/status`, { status }),
 };

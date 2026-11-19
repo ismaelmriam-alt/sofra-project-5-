@@ -29,19 +29,14 @@ export default function Footer() {
           <ul>
             <li><Link to="/">Home</Link></li>
             <li><Link to="/menu">Our Menu</Link></li>
+            <li><Link to="/reservations">Book a Table</Link></li>
             <li><a href="/#story">Our Story</a></li>
             <li><Link to="/checkout">Checkout</Link></li>
           </ul>
         </div>
         <div>
           <h4>Visit &amp; Contact</h4>
-          <ul className="contact-list">
-            <li>Demo address: 12 Cedar Street, Beirut</li>
-            <li>Demo phone: +961 00 000 000</li>
-            <li>hello@sofra.example</li>
-            <li>Daily · 12:00 – 23:00</li>
-          </ul>
-          <p className="demo-note">Fictional demo details — SOFRA is not a real restaurant.</p>
+          <p className="demo-note">Restaurant address, contact details, and hours have not been provided.</p>
         </div>
       </div>
       <div className="footer-bottom">© {new Date().getFullYear()} SOFRA · Demo project</div>

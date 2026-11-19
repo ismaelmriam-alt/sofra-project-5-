@@ -5,6 +5,9 @@ import * as cat from '../controllers/categoryController.js';
 import * as dish from '../controllers/dishController.js';
 import * as order from '../controllers/orderController.js';
 import { requireAdmin, adminLogin } from '../middleware/auth.js';
+import { getCurrentUser, loginUser, registerUser } from '../controllers/userAuthController.js';
+import { requireUser } from '../middleware/userAuth.js';
+import * as reservation from '../controllers/reservationController.js';
 import { uploadMiddleware, handleUpload } from '../controllers/uploadController.js';
 import { isCloudinaryConfigured } from '../config/cloudinary.js';
 
@@ -14,6 +17,19 @@ const id = validateObjectId('id');
 router.get('/health', (req, res) => {
   res.json({ ok: true, db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' });
 });
+
+// Customer accounts use JWTs and remain separate from the shared admin key.
+router.post('/auth/register', asyncHandler(registerUser));
+router.post('/auth/login', asyncHandler(loginUser));
+router.get('/auth/me', requireUser, asyncHandler(getCurrentUser));
+
+// Customer reservation availability and booking are public; settings and management are admin-only.
+router.get('/reservations/availability', asyncHandler(reservation.getReservationAvailability));
+router.post('/reservations', asyncHandler(reservation.createReservation));
+router.get('/reservation-settings', requireAdmin, asyncHandler(reservation.getReservationSettings));
+router.put('/reservation-settings', requireAdmin, asyncHandler(reservation.saveReservationSettings));
+router.get('/reservations', requireAdmin, asyncHandler(reservation.listReservations));
+router.patch('/reservations/:id/status', requireAdmin, id, asyncHandler(reservation.updateReservationStatus));
 
 // Admin session check (shared-secret, see middleware/auth.js)
 router.post('/admin/login', adminLogin);

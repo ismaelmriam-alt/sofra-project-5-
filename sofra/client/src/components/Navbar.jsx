@@ -3,10 +3,12 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Logo from './Logo.jsx';
 import { useCart } from '../context/CartContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const LINKS = [
   { label: 'Home', to: '/' },
   { label: 'Our Menu', to: '/menu' },
+  { label: 'Book a Table', to: '/reservations' },
   { label: 'Our Story', to: '/#story', hash: 'story' },
   { label: 'Contact', to: '/#contact', hash: 'contact' },
 ];
@@ -23,6 +25,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menu, setMenu] = useState(false);
   const { count, openCart } = useCart();
+  const { user, logout } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -44,6 +47,12 @@ export default function Navbar() {
     else { navigate('/'); setTimeout(scroll, 450); }
   };
 
+  const signOut = () => {
+    logout();
+    setMenu(false);
+    navigate('/');
+  };
+
   const renderLink = (l, cls = '') =>
     l.hash ? (
       <a key={l.label} href={l.to} onClick={(e) => goHash(e, l.hash)} className={cls}>{l.label}</a>
@@ -63,6 +72,19 @@ export default function Navbar() {
           <Logo />
           <nav className="nav-links" aria-label="Main">{LINKS.map((l) => renderLink(l, 'nav-link'))}</nav>
           <div className="nav-actions">
+            <div className="nav-auth">
+              {user ? (
+                <>
+                  <Link className="nav-account" to="/account">My Account</Link>
+                  <button className="nav-logout" onClick={signOut}>Log out</button>
+                </>
+              ) : (
+                <>
+                  <Link className="nav-account" to="/login">Log in</Link>
+                  <Link className="nav-register" to="/register">Register</Link>
+                </>
+              )}
+            </div>
             <button className="cart-btn" onClick={openCart} aria-label={`Open cart, ${count} items`}>
               <CartIcon />
               <AnimatePresence mode="popLayout">
@@ -89,6 +111,19 @@ export default function Navbar() {
                   {renderLink(l, 'mobile-link')}
                 </motion.div>
               ))}
+              <motion.div className="mobile-auth-actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.52 }}>
+                {user ? (
+                  <>
+                    <Link to="/account" className="mobile-auth-link">My Account</Link>
+                    <button className="mobile-auth-link" onClick={signOut}>Log out</button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" className="mobile-auth-link">Log in</Link>
+                    <Link to="/register" className="btn btn-light">Create an account</Link>
+                  </>
+                )}
+              </motion.div>
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
                 <Link to="/menu" className="btn btn-light">Order now</Link>
               </motion.div>

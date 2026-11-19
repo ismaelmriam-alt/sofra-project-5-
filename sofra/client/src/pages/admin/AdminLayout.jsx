@@ -10,6 +10,8 @@ const TABS = [
   ['/admin/dishes', 'Dishes'],
   ['/admin/categories', 'Categories'],
   ['/admin/orders', 'Orders'],
+  ['/admin/reservations', 'Reservations'],
+  ['/admin/reservation-settings', 'Reservation Settings'],
 ];
 
 export default function AdminLayout() {

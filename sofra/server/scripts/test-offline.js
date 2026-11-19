@@ -3,12 +3,16 @@
 // Starts the real Express app on a random port. The CRUD-with-MongoDB checks live in smoke-test.js.
 import fs from 'fs';
 import path from 'path';
+import { randomBytes } from 'crypto';
 import { createApp } from '../src/app.js';
 import Dish from '../src/models/Dish.js';
+import User from '../src/models/User.js';
+import { getJwtSecret } from '../src/middleware/userAuth.js';
 import mongoose from 'mongoose';
 import { DISH_IMAGES_DIR } from '../src/config/paths.js';
 
 process.env.ADMIN_PASSWORD ||= 'sofra2026';
+process.env.JWT_SECRET ||= randomBytes(32).toString('hex');
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { cond ? pass++ : fail++; console.log(`  ${cond ? '✔' : '✖'} ${name} ${cond ? '' : extra}`); };
 
@@ -36,6 +40,21 @@ check('wrong password → 401', bad.status === 401);
 const good = await j('POST', '/api/admin/login', { password: process.env.ADMIN_PASSWORD });
 check('correct password → 200', good.status === 200);
 check('verify with key → 200', (await j('GET', '/api/admin/verify', undefined, KEY)).status === 200);
+
+console.log('User authentication');
+const user = new User({ name: ' Test User ', email: ' TEST@EXAMPLE.COM ', passwordHash: 'test-hash' });
+check('user email normalized and role defaults to customer', user.email === 'test@example.com' && user.role === 'customer');
+check('password hash excluded from default queries', User.schema.path('passwordHash').options.select === false);
+const configuredSecret = process.env.JWT_SECRET;
+delete process.env.JWT_SECRET;
+let missingSecretRejected = false;
+try { getJwtSecret(); } catch { missingSecretRejected = true; }
+process.env.JWT_SECRET = configuredSecret;
+check('JWT secret has no hardcoded fallback', missingSecretRejected);
+const invalidRegistration = await j('POST', '/api/auth/register', { name: '', email: 'bad-email', password: 'short' });
+check('invalid registration rejected (400)', invalidRegistration.status === 400);
+check('current-user route requires a token', (await j('GET', '/api/auth/me')).status === 401);
+check('invalid user token rejected (401)', (await j('GET', '/api/auth/me', undefined, { authorization: 'Bearer invalid.token.value' })).status === 401);
 
 console.log('Image upload');
 const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(200, 1)]);
