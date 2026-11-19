@@ -39,6 +39,7 @@ const bad = await j('POST', '/api/admin/login', { password: 'wrong' });
 check('wrong password → 401', bad.status === 401);
 const good = await j('POST', '/api/admin/login', { password: process.env.ADMIN_PASSWORD });
 check('correct password → 200', good.status === 200);
+check('GET /api/admin/login is not a login request (404)', (await j('GET', '/api/admin/login')).status === 404);
 check('verify with key → 200', (await j('GET', '/api/admin/verify', undefined, KEY)).status === 200);
 
 console.log('User authentication');

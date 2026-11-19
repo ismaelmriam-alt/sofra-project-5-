@@ -23,7 +23,7 @@ npm run client
 ```
 
 * Website: http://localhost:5173
-* **Admin dashboard: http://localhost:5173/admin** — sign in with the `ADMIN_PASSWORD` from `server/.env` (default `sofra2026` — **change it**). This is a simple shared password sent as an `x-admin-key` header so customers can't edit the menu; full user accounts/JWT are Level 3 Task 2.
+* **Admin dashboard: http://localhost:5173/admin** — sign in with the `ADMIN_PASSWORD` from `server/.env`. Set a private value; there is no built-in password fallback. This is a simple shared password sent as an `x-admin-key` header so customers can't edit the menu.
 * API: http://localhost:5000/api/health
 
 Production-style: `npm run build`, then `npm run server` also serves `client/dist` at http://localhost:5000.
@@ -117,7 +117,7 @@ The SOFRA book (`MenuCover.jsx`, mounted in `Layout.jsx`) is the single entrance
 ## Deploy everything on Vercel (website + API in one project)
 1. Create a MongoDB database (Atlas) and allow network access from `0.0.0.0/0`.
 2. Put the connection string in `server/.env` (`MONGODB_URI=...`) and run `npm run seed -- --force` inside `server/` once.
-3. In Vercel → Project → Settings → General: **Root Directory must be empty**. Settings → Environment Variables: add `MONGODB_URI` and `ADMIN_PASSWORD`. Do **not** set `VITE_API_URL`.
+3. For this repository's single-project Vercel setup, set `MONGODB_URI` and `ADMIN_PASSWORD` in Vercel environment variables. If the React frontend is deployed separately from the API (for example, frontend on Vercel and backend on Render), set `VITE_API_URL` in Vercel to the backend origin (for example, `https://your-service.onrender.com`); the client adds `/api`. Also set `CLIENT_ORIGIN` on the backend to the exact frontend origin. Set the same private `ADMIN_PASSWORD` value on the backend that you enter in the admin login form. Never put it in a `VITE_` variable.
 4. From the project's top folder (the one containing `api/`, `client/`, `server/` and `vercel.json`) run `npx vercel --prod`.
 Check `https://YOUR-SITE.vercel.app/api/health` → `"db":"connected"`.
 Note: photo upload in the admin is switched off on Vercel (read-only disk); paste an https:// image link instead. The seeded photos work normally.

@@ -1,5 +1,8 @@
 // Thin wrapper around fetch for the SOFRA REST API.
-const BASE = import.meta.env.VITE_API_URL || '/api';
+const configuredBase = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, '');
+const BASE = configuredBase
+  ? (configuredBase.endsWith('/api') ? configuredBase : `${configuredBase}/api`)
+  : '/api';
 
 export class ApiError extends Error {
   constructor(message, status, details) {
@@ -41,7 +44,7 @@ export const api = {
   loginUser: (credentials) => request('POST', '/auth/login', credentials, { includeAdmin: false }),
   getCurrentUser: (token) => request('GET', '/auth/me', null, { userToken: token, includeAdmin: false }),
   // admin session + uploads
-  adminLogin: (password) => request('POST', '/admin/login', { password }),
+  adminLogin: (password) => request('POST', '/admin/login', { password }, { includeAdmin: false }),
   adminVerify: () => request('GET', '/admin/verify'),
   uploadDishImage: (file) => { const f = new FormData(); f.append('image', file); return request('POST', '/uploads/dish-image', null, { formData: f }); },
   // categories
