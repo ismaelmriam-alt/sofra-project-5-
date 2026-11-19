@@ -3,7 +3,7 @@ import { HttpError } from './errorHandler.js';
 
 // Simple shared-secret protection for the admin API (Task 1 scope: no JWT, no user accounts).
 // The admin password lives only in server/.env (ADMIN_PASSWORD); the browser sends it in the x-admin-key header.
-const DEFAULT_PASSWORD = 'sofra2026';
+const DEFAULT_PASSWORD = '<151204sofra>';
 export const usingDefaultPassword = () => !process.env.ADMIN_PASSWORD;
 const adminPassword = () => process.env.ADMIN_PASSWORD || DEFAULT_PASSWORD;
 
