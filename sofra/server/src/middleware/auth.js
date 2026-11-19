@@ -21,7 +21,13 @@ export async function adminLogin(req, res, next) {
   if (!isAdminPasswordConfigured()) return next(new HttpError(503, 'Admin authentication is not configured'));
   if (!isValidAdminKey(req.body?.password)) {
     await new Promise((r) => setTimeout(r, 500)); // slow down guessing
-    return next(new HttpError(401, 'Incorrect admin password'));
+    const submittedPasswordLength = typeof req.body?.password === 'string' ? req.body.password.length : null;
+    return next(new HttpError(401, 'Incorrect admin password', {
+      diagnostic: {
+        adminPasswordConfigured: isAdminPasswordConfigured(),
+        submittedPasswordLength,
+      },
+    }));
   }
   res.json({ ok: true });
 }

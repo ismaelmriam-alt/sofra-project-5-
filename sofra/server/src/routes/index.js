@@ -4,7 +4,7 @@ import { asyncHandler, validateObjectId } from '../middleware/errorHandler.js';
 import * as cat from '../controllers/categoryController.js';
 import * as dish from '../controllers/dishController.js';
 import * as order from '../controllers/orderController.js';
-import { requireAdmin, adminLogin } from '../middleware/auth.js';
+import { requireAdmin, adminLogin, isAdminPasswordConfigured } from '../middleware/auth.js';
 import { getCurrentUser, loginUser, registerUser } from '../controllers/userAuthController.js';
 import { requireUser } from '../middleware/userAuth.js';
 import * as reservation from '../controllers/reservationController.js';
@@ -15,7 +15,15 @@ const router = Router();
 const id = validateObjectId('id');
 
 router.get('/health', (req, res) => {
-  res.json({ ok: true, db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' });
+  res.json({
+    ok: true,
+    db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    deployment: {
+      commit: process.env.RENDER_GIT_COMMIT || null,
+      service: process.env.RENDER_SERVICE_NAME || null,
+    },
+    adminPasswordConfigured: isAdminPasswordConfigured(),
+  });
 });
 
 // Customer accounts use JWTs and remain separate from the shared admin key.

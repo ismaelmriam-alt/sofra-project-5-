@@ -11,7 +11,7 @@ import { getJwtSecret } from '../src/middleware/userAuth.js';
 import mongoose from 'mongoose';
 import { DISH_IMAGES_DIR } from '../src/config/paths.js';
 
-process.env.ADMIN_PASSWORD ||= 'sofra2026';
+process.env.ADMIN_PASSWORD ||= randomBytes(32).toString('hex');
 process.env.JWT_SECRET ||= randomBytes(32).toString('hex');
 let pass = 0, fail = 0;
 const check = (name, cond, extra = '') => { cond ? pass++ : fail++; console.log(`  ${cond ? '✔' : '✖'} ${name} ${cond ? '' : extra}`); };
@@ -37,10 +37,20 @@ check('POST /api/orders is not blocked (validation error, not 401)', ord.status 
 console.log('Admin login');
 const bad = await j('POST', '/api/admin/login', { password: 'wrong' });
 check('wrong password → 401', bad.status === 401);
+const badBody = await bad.json();
+check('401 diagnostic reports configured flag and submitted length only',
+  badBody.details?.diagnostic?.adminPasswordConfigured === true
+  && badBody.details?.diagnostic?.submittedPasswordLength === 5
+  && !JSON.stringify(badBody).includes('wrong'));
 const good = await j('POST', '/api/admin/login', { password: process.env.ADMIN_PASSWORD });
 check('correct password → 200', good.status === 200);
 check('GET /api/admin/login is not a login request (404)', (await j('GET', '/api/admin/login')).status === 404);
 check('verify with key → 200', (await j('GET', '/api/admin/verify', undefined, KEY)).status === 200);
+const health = await (await j('GET', '/api/health')).json();
+check('health exposes safe deployment fingerprint and configured flag',
+  Object.hasOwn(health, 'adminPasswordConfigured')
+  && Object.hasOwn(health.deployment || {}, 'commit')
+  && Object.hasOwn(health.deployment || {}, 'service'));
 
 console.log('User authentication');
 const user = new User({ name: ' Test User ', email: ' TEST@EXAMPLE.COM ', passwordHash: 'test-hash' });
